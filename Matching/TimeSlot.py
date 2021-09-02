@@ -2,13 +2,15 @@ import datetime
 
 
 class TimeSlot:
-    def __init__(self, begin: str, end: str):
+    def __init__(self, begin: str, end: str, available: bool):
         if not(isinstance(begin, str) and
-               isinstance(end, str)):
+               isinstance(end, str) and
+               isinstance(available, bool)):
             raise ValueError
 
         self.begin = datetime.datetime.strptime(begin, '%H:%M')
         self.end = datetime.datetime.strptime(end, '%H:%M')
+        self.available = available
 
     def __repr__(self):
         return f"""

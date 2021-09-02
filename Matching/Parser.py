@@ -11,11 +11,13 @@ class Parser:
             raise FileNotFoundError
         self.path = path
 
-    def parse(self) -> list[Entity]:
+    def parse(self) -> tuple[int, list[Entity]]:
         with open(self.path, "r") as fp:
             contents = json.load(fp)
 
         person_container = []
+        duration = contents["meetingDuration"]
+
         for candidate, information in contents["people"][0].items():
             container = []
             working_schedule = information['workingSchedule']
@@ -23,13 +25,13 @@ class Parser:
             SOD, EOD = information['dailyActivities']
 
             for begin, end in working_schedule:
-                container.append(TimeSlot(begin, end))
+                container.append(TimeSlot(begin, end, True))
 
             # add fringe cases
-            container.append(TimeSlot(EOD, '23:59'))
-            container.insert(0, TimeSlot('00:00', SOD))
+            container.append(TimeSlot(EOD, '23:59', False))
+            container.insert(0, TimeSlot('00:00', SOD, False))
 
             person_container.append(Entity(candidate, container, [
                 container[0], container[-1]]))
 
-        return person_container
+        return (duration, person_container)
