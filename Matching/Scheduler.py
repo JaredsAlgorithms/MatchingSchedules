@@ -1,41 +1,84 @@
+from Matching.TimeSlot import TimeSlot
+from Matching.Stack import Stack
+
+
 class Scheduler:
-    def __init__(self):
-        pass
-
-    def mergeSchedules(self, duration, person1, person2):
+    def combineSchedules(self, person1, person2) -> list:
         """
-        Given the duration of the meeting and both parties schedules:
-        Return a list of times that DO NOT work for either party
+        Remove duplicate time intervals
         """
-        [min1, max1], [min2, max2] = person1.unavailable, person2.unavailable
 
+        a, b = len(person1.schedule), len(person2.schedule)
+
+        # True: person1
+        # False: person2
+
+        _info = (
+            False if a < b else True,
+            abs(a - b)
+        )
+        container = []
         for schedule1, schedule2 in zip(person1.schedule, person2.schedule):
-            if not(schedule1.available or schedule2.available):
-                # these are fringe cases, do not add to list of times to consider
-                continue
-            # interested in the ending of the first schedule and beginning of the second one
-            s1, e1 = schedule1.begin, schedule1.end
-            s2, e2 = schedule2.begin, schedule2.end
+            if(schedule1 not in container):
+                container.append(schedule1)
+            if(schedule2 not in container):
+                container.append(schedule2)
 
-            lhs = abs(s1 - s2).total_seconds()
+        # make sure you add the contents of the larger schedule into the container
+        if(a != b):
+            __which_container, index = _info
+            person = person1 if(__which_container) else person2
+            for value in person.schedule[index:]:
+                if(value not in container):
+                    container.append(value)
 
-            print(f"time remaining before the meeting: {lhs // 60}")
+        container.sort(key=lambda x: x.begin)  # O(n * log(n)) time complexity
+        return container
 
-            rhs = abs(e1 - e2).total_seconds()
+    def mergeSchedules(self, person1, person2):
+        """
+        Input: pre-sorted container
+        Return a range of times that possibly work for each party
+        """
 
-            print(f"time remaining after the meeting: {rhs}")
+        # NOTE: this project pulls from this solution from LeetCode:
+        # https://leetcode.com/problems/merge-intervals/solution/
+        # smaller time intervals will be combined into one contiguous interval
+        # I wanted to be creative and use a stack instead of a pure list
 
-            # if((end <= begin) and (duration <= time_between)):
-            # print("something")
-            # else:
-            # print("this time slot will not work:")
-            # print(end, begin)
+        # assumes result is not a n empty list
+        result = self.combineSchedules(person1, person2)
+        if not(result):
+            return []
 
-    # def mergedSchedules(self, duration, person1, person2):
-        # i, j = 0, 0
-        # schedule1Amount, schedule2Amount = len(
-            # person1.schedule), len(person2.schedule)
+        _Stack = Stack()
+        _Stack.push(result[0])
 
-        # while((i < schedule1Amount) and (j < schedule2Amount)):
-            # meeting1, meeting2 = person1.schedule[i], person2.schedule[j]
-            # if
+        for slot in result[1:]:
+            top = _Stack.peek()
+            if(top.end < slot.begin):
+                _Stack.push(slot)
+            else:
+                top.end = max(top.end, slot.end)
+        return _Stack.container
+
+    def dispenseTimes(self, merged):
+
+        # strip edge cases
+        edge_one, edge_two = merged[0].end, merged[-1].begin  # 2
+        new_container = []
+
+        # iterate over the range not including fringe cases
+        for element in merged[1:-1]:
+            begin, end = element.begin, element.end
+            new_container.append(begin)
+            new_container.append(end)
+
+        new_container.insert(0, edge_one)
+        new_container.append(edge_two)
+
+        # create a list where every other indexes are pairs:
+        # container = [1, 2, 3, 4] would be [[1, 2], [3, 4]]
+
+        return [new_container[n:n+2]
+                for n in range(0, len(new_container), 2)]

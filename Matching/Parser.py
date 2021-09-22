@@ -25,11 +25,16 @@ class Parser:
             SOD, EOD = information['dailyActivities']
 
             for begin, end in working_schedule:
-                container.append(TimeSlot(begin, end, True))
+                availability = (
+                    False if(begin < SOD) else True,
+                    False if(end > EOD) else True
+                )
+                container.append(
+                    TimeSlot(begin, end, availability))
 
             # add fringe cases
-            container.append(TimeSlot(EOD, '23:59', False))
-            container.insert(0, TimeSlot('00:00', SOD, False))
+            container.append(TimeSlot(EOD, '23:59', (False, False)))
+            container.insert(0, TimeSlot('00:00', SOD, (False, False)))
 
             person_container.append(Entity(candidate, container, [
                 container[0], container[-1]]))
