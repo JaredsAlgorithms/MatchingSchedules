@@ -8,6 +8,7 @@ import pathlib
 
 
 def main(path: str):
+    print(f'Conducting test at: {path}')
     pars = Parser(pathlib.Path(path))
     _schedule = Scheduler()
 
@@ -16,16 +17,16 @@ def main(path: str):
     resultant = _schedule.mergeSchedules(person1, person2)
     intervals = _schedule.dispenseTimes(resultant)
 
-    for interval in intervals:
+    for x, interval in enumerate(intervals):
         begin, end = interval
         obj = TimeSlot.from_datetime(begin, end)
         interval_duration = abs(begin - end).total_seconds()
         if(duration > interval_duration):
             continue
         print(
-            f'{obj.begin.strftime("%H:%M")} -> {obj.end.strftime("%H:%M")}')
+            f'Interval [{x}]: {obj.begin.strftime("%H:%M")} -> {obj.end.strftime("%H:%M")}')
 
 
 main("inputs/01.json")
-# print()
-# main("inputs/02.json")
+print()
+main("inputs/02.json")
